@@ -19,25 +19,10 @@
   </head>
 
   <body>
-    <!-- Toolbar at top. -->
-    <div class="toolbar">
-      <svg class="toolbar-button toolbar-button-active button-straightedge" viewBox="0 0 24 24">
-        <g transform="rotate(45,12,12)">
-          <path d="M12 9C10.7 9 9.6 9.8 9.2 11H6.8C6.4 9.8 5.3 9 4 9C2.3 9 1 10.3 1 12S2.3 15 4 15C5.3 15 6.4 14.2 6.8 13H9.2C9.6 14.2 10.7 15 12 15S14.4 14.2 14.8 13H17.2C17.6 14.2 18.7 15 20 15C21.7 15 23 13.7 23 12S21.7 9 20 9C18.7 9 17.6 9.8 17.2 11H14.8C14.4 9.8 13.3 9 12 9M3 12C3 11.4 3.4 11 4 11S5 11.4 5 12 4.6 13 4 13 3 12.6 3 12M21 12C21 12.6 20.6 13 20 13S19 12.6 19 12 19.4 11 20 11 21 11.4 21 12Z" />
-        </g>
-      </svg>
-      <svg class="toolbar-button toolbar-button-inactive button-compass" viewBox="0 0 24 24">
-        <path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4M12,6A6,6 0 0,0 6,12A6,6 0 0,0 12,18A6,6 0 0,0 18,12A6,6 0 0,0 12,6M12,8A4,4 0 0,1 16,12A4,4 0 0,1 12,16A4,4 0 0,1 8,12A4,4 0 0,1 12,8Z" />
-      </svg>
-      <svg class="toolbar-button toolbar-button-inactive button-cancel" viewBox="0 0 24 24">
-        <path d="M3,16.74L7.76,12L3,7.26L7.26,3L12,7.76L16.74,3L21,7.26L16.24,12L21,16.74L16.74,21L12,16.24L7.26,21L3,16.74M12,13.41L16.74,18.16L18.16,16.74L13.41,12L18.16,7.26L16.74,5.84L12,10.59L7.26,5.84L5.84,7.26L10.59,12L5.84,16.74L7.26,18.16L12,13.41Z" />
-      </svg>
-    </div>
-    
     <!-- Where the drawing happens. -->
-    <div id="plane"></div>
+    <div class="stage"></div>
     
-    <!-- JavaScript for interacting with the svg. -->
+    <!-- JavaScript for interacting with the stage. -->
     <script src="ruler.js"></script>
   </body>
 </html>

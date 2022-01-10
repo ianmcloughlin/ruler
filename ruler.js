@@ -1,65 +1,117 @@
 
 // (function() {
 
+
   /***************************************************************************
-   * Parameters and preliminaries for display.
+   * Drawing parameters and setup.
   ***************************************************************************/
+  // Colours.
+  let colors = {
+    purple: 'rgb(142,  67, 231)',
+    blue: 'rgb(  0, 174, 255)',
+    cyan: 'rgb( 28, 199, 208)',
+    green: 'rgb( 77, 197, 148)',
+    orange: 'rgb(255, 108,  95)',
+    pink: 'rgb(252,  99, 107)',
+    red: 'rgb(255,  79, 129)',
+  };
 
-  // Number of of SVG units between 0 and 1.
-  const unit = 100;
+  // Number of pixels between 0 and 1.
+  let zero_to_one = 100;
 
-  // Line thickness.
-  const thickness = 1;
-  
-  // Line dashes.
-  const dashes = 14;
-  
-  // Radius of a point.
-  const dotradius = 5;
-  
-  // Label font size.
-  const labelfontsize = 14;
-
-  // Toolbar size.
-  const tb = 30;
-
-  // Circle mode is false, line mode is true.
-  let ui_mode = true;
-
-  // SVG viewbox.
-  let viewbox = [-400, -400, 800, 800];
 
   var stage = new Konva.Stage({
-    container: 'plane',
+    container: '.stage',
     width: window.innerWidth,
     height: window.innerHeight,
-  });
-
-  // add canvas element
-  var layer = new Konva.Layer();
-  stage.add(layer);
-
-  // create shape
-  var box = new Konva.Rect({
-    x: 50,
-    y: 50,
-    width: 100,
-    height: 50,
-    fill: '#00D2FF',
-    stroke: 'black',
-    strokeWidth: 4,
     draggable: true,
   });
-  layer.add(box);
 
-  // add cursor styling
-  box.on('mouseover', function () {
-    document.body.style.cursor = 'pointer';
-  });
-  box.on('mouseout', function () {
-    document.body.style.cursor = 'default';
+  // Allow zooming.
+  let scaleBy = 1.2;
+  stage.on('wheel', (e) => {
+    e.evt.preventDefault();
+
+    var oldScale = stage.scaleX();
+    var pointer = stage.getPointerPosition();
+
+    var mousePointTo = {
+      x: (pointer.x - stage.x()) / oldScale,
+      y: (pointer.y - stage.y()) / oldScale,
+    };
+
+    // Zoom in or out.
+    let direction = e.evt.deltaY < 0 ? 1 : -1;
+
+    // when we zoom on trackpad, e.evt.ctrlKey is true
+    // in that case lets revert direction
+    if (e.evt.ctrlKey) {
+      direction = -direction;
+    }
+
+    var newScale = direction > 0 ? oldScale * scaleBy : oldScale / scaleBy;
+
+    stage.scale({ x: newScale, y: newScale });
+
+    var newPos = {
+      x: pointer.x - mousePointTo.x * newScale,
+      y: pointer.y - mousePointTo.y * newScale,
+    };
+    stage.position(newPos);
   });
 
+
+
+  /***************************************************************************
+   * Initial ponts, lines, and circles.
+  ***************************************************************************/
+
+  // Constructed points.
+  let points = {
+    '0': {
+      x: 200,
+      y: 200,
+      labelx: -15,
+      labely: 15,
+    }, 
+    '1': {
+      x: 300,
+      y: 200,
+      labelx: -15,
+      labely: 15,
+    }, 
+    '2': {
+      x: 400,
+      y: 200,
+      labelx: -15,
+      labely: 15,
+    },
+    'A': {
+      x: 300,
+      y: 300,
+      labelx: -15,
+      labely: 15,
+    },
+    'B': {
+      x: 400,
+      y: 100,
+      labelx: -15,
+      labely: 15,
+    },
+  };
+  
+  // Constructed lines.
+  let lines = [
+    ['0', '1'],
+    ['0', 'A'],
+    ['1', 'B'],
+  ];
+
+  // Constructed circles.
+  let circles = [
+    ['1', '0'],
+    ['0', '1']
+  ];
 
   /***************************************************************************
    * Functions for geometry etc.
@@ -170,137 +222,113 @@
     return {x1, x2, y1, y2};
   }
 
-  // Centre and radius of a circle from two points in an array.
-  function centre_and_radius(p1, p2) {
-  
-    // Calculate radius.
+  // Distance between two points.
+  function distance(p1, p2) {
+    // Calculate x and y offsets.
     let a = p2.x - p1.x;
     let b = p2.y - p1.y;
-    let r = Math.sqrt(a * a + b * b);
-
-    // Return the circle parameters for the SVG element.
-    return {cx: p1.x, cy: p1.y, r};
-
+    // Pythagoras.
+    return Math.sqrt(a * a + b * b);
   }
   
+
 
   
   /***************************************************************************
-   * Initial ponts, lines, and circles.
+   * Drawing functions.
   ***************************************************************************/
+ 
+  function draw() {
+    let layer = new Konva.Layer();
 
-  // Constructed points.
-  let points = [{
-    '0': {
-      x: 0,
-      y: 0,
-      labelx: -15,
-      labely: 15,
-    }, 
-    '1': {
-      x: 100,
-      y: 0,
-      labelx: -15,
-      labely: 15,
-    }, 
-    '2': {
-      x: 200,
-      y: 0,
-      labelx: -15,
-      labely: 15,
-    },
-    'A': {
-      x: 100,
-      y: 100,
-      labelx: -15,
-      labely: 15,
-    },
-    'B': {
-      x: 200,
-      y: -100,
-      labelx: -15,
-      labely: 15,
-    },
-  }];
-  
-  // Constructed lines.
-  let lines = [
-    ['0', '1'],
-    ['0', 'A'],
-    ['1', 'B'],
-  ];
+    // Draw the circles.
+    for (const circle of circles) {
+      // Extract the two points.
+      let p1 = points[circle[0]];
+      let p2 = points[circle[1]];
+      // Create new circle.
+      layer.add(new Konva.Circle({
+        x: p1.x,
+        y: p1.y,
+        radius: distance(p1, p2),
+        stroke: colors.purple,
+        strokewidth: 4,
+        dash: [5,5],
+      }));
+    };
 
-  // Constructed circles.
-  let circles = [
-    ['1', '0'],
-    ['0', '1']
-  ];
-    
+    // Draw the lines.
+    for (const line of lines) {
+      // Extract the two points.
+      let p1 = points[line[0]];
+      let p2 = points[line[1]];
+      // Draw the line.
+      layer.add(new Konva.Line({
+        points: [p1.x, p1.y, p2.x, p2.y],
+        stroke: colors.green,
+        strokewidth: 4,
+        dash: [5,5],
+      }));
+    };
 
-  /***************************************************************************
-   * Painting the ponts, lines, and circles.
-  ***************************************************************************/
+    // Draw the points.
+    for (const [label, point] of Object.entries(points)) {
+      // Draw the point.
+      let circle = new Konva.Circle({
+        x: point.x,
+        y: point.y,
+        radius: 8,
+        fill: colors.blue,
+        stroke: colors.purple,
+        strokewidth: 1,
+        label: label,
+      });
+      circle.on('pointerdown', function () {
+        this.stroke('red');
+        console.log(this.attrs.label);
+      });
+      layer.add(circle);
+      // Draw the label.
+      layer.add(new Konva.Text({
+        x: point.x + point.labelx,
+        y: point.y + point.labely,
+        text: label,
+        fontSize: 16,
+        fontFamily: 'Calibri',
+        fill: colors.pink,
+      }));
+    };
 
-  function paint() {
-
-    // The coordinates of the lines and circles in the SVG.
-    let svg_lines, svg_circles ;
-
-    // Calculate the SVG lines from the lines.
-    svg_lines = lines.map(line => {
-      // Get the points with the labels in line.
-      let p1 = points.filter(obj => obj.label == line[0])[0];
-      let p2 = points.filter(obj => obj.label == line[1])[0];
-      // Calculate the extreme points.
-      return extreme_points(p1, p2);
-    });
-
-    // Calculate the SVG circles from the circles.  
-    svg_circles = circles.map(circle => {
-      // Get the points with the labels in line.
-      let p1 = points.filter(obj => obj.label == circle[0])[0];
-      let p2 = points.filter(obj => obj.label == circle[1])[0];
-      // Calculate the radius and centre.
-      return centre_and_radius(p1, p2);
-    });
+    stage.add(layer);
   }
 
+  draw();
 
 
   /***************************************************************************
-   * Toolbar.
+   * Parameters and preliminaries for display.
   ***************************************************************************/
-  // Status of straightedge situation.
-  let status_straightedge = {
-    active: true,
-    pointone: null,
-  }
 
-  // Point click handler.
-  function point_click(e) {
-    me = d3.select(this);
-    if (status_straightedge.pointone) {
-      if (status_straightedge.pointone !== me.datum().label) {
-        // Push line.
-        lines.push([status_straightedge.pointone, me.datum().label]);
-        // Clear status.
-        status_straightedge.active = false;
-        status_straightedge.pointone = null;
-        paint();
-      }
-    } else {
-      // Save point.
-      status_straightedge.pointone = me.datum().label;
-    }
-  }
+  // Number of of SVG units between 0 and 1.
+  const unit = 100;
 
+  // Line thickness.
+  const thickness = 1;
   
-  // The straightedge button.
-  function button_straightedge(e) {
-    let me = d3.select(this);
-    me.classed("toolbar-button-inactive", !me.classed("toolbar-button-inactive"));
-    me.classed("toolbar-button-active", !me.classed("toolbar-button-active"));
-  }
+  // Line dashes.
+  const dashes = 14;
+  
+  // Radius of a point.
+  const dotradius = 5;
+  
+  // Label font size.
+  const labelfontsize = 14;
+
+  // Toolbar size.
+  const tb = 30;
+
+  // Circle mode is false, line mode is true.
+  let ui_mode = true;
 
 
   
