@@ -175,7 +175,9 @@
   // Extreme points in viewbox of line from two points.
   function extreme_points(p1, p2) {
     
-    // The four values we're gonig to calculate.
+    let extreme = 10000;
+
+    // The four values we're going to calculate.
     let x1, y1, x2, y2;
 
     // Equation of the line.
@@ -184,9 +186,9 @@
     // Check if line is vertical.
     if (m === Infinity) {
 
-      // The y values are just the top and bottom of the viewbox.
-      y1 = viewbox[1];
-      y2 = viewbox[1] + viewbox[3];
+      // The y values are just the top and bottom.
+      y1 = -extreme;
+      y2 = extreme;
       
       // The x values are the x intercept.
       x1 = c;
@@ -198,8 +200,8 @@
       if (Math.abs(m) > 1) {
         
         // The y values are the top and bottom of the viewbox.
-        y1 = viewbox[1];
-        y2 = viewbox[1] + viewbox[3];
+        y1 = -extreme;
+        y2 = extreme;
         
         // x = (y - c) / m
         x1 = (y1 - c) / m;
@@ -208,8 +210,8 @@
       } else {
         
         // The x values are the left and right of the viewbox.
-        x1 = viewbox[0];
-        x2 = viewbox[0] + viewbox[2];
+        x1 = -extreme;
+        x2 = extreme;
         
         // y = mx + c
         y1 = (m * x1) + c;
@@ -219,7 +221,7 @@
     }
 
     // Return the extreme line points.
-    return {x1, x2, y1, y2};
+    return [x1, x2, y1, y2];
   }
 
   // Distance between two points.
@@ -264,7 +266,7 @@
       let p2 = points[line[1]];
       // Draw the line.
       layer.add(new Konva.Line({
-        points: [p1.x, p1.y, p2.x, p2.y],
+        points: extreme_points(p1, p2), // [p1.x, p1.y, p2.x, p2.y],
         stroke: colors.green,
         strokewidth: 4,
         dash: [5,5],
@@ -285,7 +287,16 @@
       });
       circle.on('pointerdown', function () {
         this.stroke('red');
-        console.log(this.attrs.label);
+        
+        console.log(stage);
+        console.log(layer);
+
+        layer.add(new Konva.Circle({
+          x: -stage.attrs.x,
+          y: -stage.attrs.y,
+          radius: 20,
+          fill: colors.cyan,
+        }));
       });
       layer.add(circle);
       // Draw the label.
@@ -298,6 +309,8 @@
         fill: colors.pink,
       }));
     };
+
+
 
     stage.add(layer);
   }
